@@ -55,7 +55,7 @@ class HttpServer():
         Then you would return "/images/sample_1.png"
         """
 
-        return "TODO: COMPLETE THIS"  # TODO
+        return request.split(' ')[1]
 
 
     @staticmethod
@@ -158,12 +158,13 @@ class HttpServer():
                     
                     print("Request received:\n{}\n\n".format(request))
 
-                    path = self.get_path(request)
+                    path = self.get_path(request) #e.g. /images/sample_1.png
                     
                     try:
-                        body = self.get_content(path)
-                        mimetype = self.get_mimetype(path)
-
+                        # get_content needs to be able to raise a filenotfound error
+                        body = self.get_content(path) #returns contents of a file or dir list
+                        mimetype = self.get_mimetype(path) #short str that tells browser what it is e.g image, webpage
+                        # http response to req
                         response = self.make_response(
                             b"200", b"OK", body, mimetype
                         )
