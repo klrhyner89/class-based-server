@@ -2,6 +2,7 @@ import socket
 import sys
 import traceback
 import os
+import pathlib
 import mimetypes
 
 class HttpServer():
@@ -54,7 +55,7 @@ class HttpServer():
 
         Then you would return "/images/sample_1.png"
         """
-
+        # IN: GET /images/sample_1.png HTTP/1.1 OUT: /images/sample_1.png
         return request.split(' ')[1]
 
 
@@ -88,7 +89,9 @@ class HttpServer():
         if path.endswith('/'):
             return b"text/plain"
         else:
-            return b"TODO: FINISH THE REST OF THESE CASES"  # TODO
+            # b"TODO: FINISH THE REST OF THESE CASES"  # TODO
+            # mimetypes.guess_type(path) -> tuple of (#$ , #$)
+            return bytes(str(mimetypes.guess_type(path)[0]), 'utf-8') # b'image/png'
 
     @staticmethod
     def get_content(path):
@@ -123,8 +126,21 @@ class HttpServer():
             # The file `webroot/a_page_that_doesnt_exist.html`) doesn't exist,
             # so this should raise a FileNotFoundError.
         """
-
-        return b"Not implemented!"  # TODO: Complete this function.
+        if os.path.exists(pathlib.Path.cwd() / 'webroot' / path[1:]):
+            if HttpServer.get_mimetype(path) == b'None' or path == '/':
+        # below is broken
+                # items = []
+                # for item in os.listdir(pathlib.Path.cwd() / 'webroot' / path[1:]):
+        # if the mimetype of the item is None, its another directory (not jpg, html, etc.), add that to the href path
+                #     items.append('\n<li><a href=\"http://localhost:10000/{0}\"><b>{0}</b></a></li>'.format(item))
+                # return ('<!DOCTYPE html> \n<html> \n<body> \n<h1>File Contents</h1> \
+                #         \n<p>So many things!</p> \n</ul>{}\n<ul> \n</body> \n</html>'.format(''.join(items)), True)
+                return bytes(str(os.listdir(pathlib.Path.cwd() / 'webroot' / path[1:])), 'utf-8')
+            else:
+                with open(pathlib.Path.cwd() / 'webroot' / path[1:], 'rb') as f:
+                    bytified = f.read()     
+                return bytified
+        raise FileNotFoundError  # TODO: Complete this function.
 
     def __init__(self, port):
         self.port = port
@@ -161,8 +177,12 @@ class HttpServer():
                     path = self.get_path(request) #e.g. /images/sample_1.png
                     
                     try:
-                        # get_content needs to be able to raise a filenotfound error
+                        # get_content needs to be able to raise a filenotfound error    DONE
                         body = self.get_content(path) #returns contents of a file or dir list
+                        # if body[1]:
+                        #     mimetype = b'text/html'
+                        #     body = bytes(str(body[0]), 'utf-8')
+                        # else:
                         mimetype = self.get_mimetype(path) #short str that tells browser what it is e.g image, webpage
                         # http response to req
                         response = self.make_response(
